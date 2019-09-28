@@ -1,42 +1,37 @@
 package com.example.schedule;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RemoteViews;
 
-import com.example.schedule.ExampleAppWidgetProvider;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 public class MainActivity extends AppCompatActivity {
 
-    ImageView imageView;
-    ImageView widgetView;
-
-    Button button;
+    private ImageView imageView;
     Uri imageUri;
+    public static Bitmap bitmap;
     private static final int PICK_IMAGE = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        imageView = findViewById(R.id.current_image);
+    }
 
-        imageView = (ImageView)findViewById(R.id.current_image);
-        button = (Button)findViewById(R.id.set_image_button);
-        widgetView = (ImageView)findViewById(R.id.scrImage);
-
-        button.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                openGallery();
-            }
-        });
+    public void confirmConfiguration(View v) {
+        openGallery();
     }
 
     private void openGallery() {
@@ -50,13 +45,19 @@ public class MainActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK &&  requestCode == PICK_IMAGE) {
             imageUri = data.getData();
             imageView.setImageURI(imageUri);
-//            widgetView.setImageURI(imageUri);
 
-//            widgetView.setImageResource();
+            Context context = this;
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
+            ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
+//            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
+            bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.image2);
+//            remoteViews.setImageViewResource(R.id.scrImage, R.drawable.image2);
+            remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
 
-            ExampleAppWidgetProvider EP = new ExampleAppWidgetProvider(ExampleAppWidgetProvider.context);
-//            EP.aaa(imageUri);
+
+            appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+
         }
     }
-
 }
