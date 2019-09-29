@@ -5,16 +5,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.squareup.picasso.Picasso;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,8 +35,31 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.current_image);
     }
 
-    public void confirmConfiguration(View v) {
-        openGallery();
+    public void confirmConfiguration(View v)
+    {
+        String myUrlStr = "https://image.shutterstock.com/image-photo/colorful-flower-on-dark-tropical-260nw-721703848.jpg";
+
+        Picasso.get().load(myUrlStr).placeholder(R.drawable.loading).into(imageView);
+        final Context context = this;
+        Handler delayHandler = new Handler();
+        delayHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("print", "image from url set");
+                bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
+                ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
+//            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
+//        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image2);
+//        remoteViews.setImageViewUri(R.id.scrImage, uri);
+                remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
+
+
+                appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+            }
+        }, 3000);
+
     }
 
     private void openGallery() {
@@ -39,24 +67,32 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(gallery, PICK_IMAGE);
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK &&  requestCode == PICK_IMAGE) {
-            imageUri = data.getData();
-            imageView.setImageURI(imageUri);
+            if (data.getData() != null) {
+                Log.d("print", "Activity result");
+                imageUri = data.getData();
+//                String myUrlStr = "https://image.shutterstock.com/image-photo/colorful-flower-on-dark-tropical-260nw-721703848.jpg";
 
-            Context context = this;
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
-            ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
-//            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
-            bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.image2);
-//            remoteViews.setImageViewResource(R.id.scrImage, R.drawable.image2);
-            remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
+//                Picasso.get().load(myUrlStr).into(imageView);
 
-
-            appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+//                Picasso.get().load(myUrlStr).''
+//
+//                Context context = this;
+//                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+//                RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
+//                ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
+////            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
+//                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image2);
+//            remoteViews.setImageViewUri(R.id.scrImage, uri);
+////                remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
+//
+//
+//                appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+            }
 
         }
     }
