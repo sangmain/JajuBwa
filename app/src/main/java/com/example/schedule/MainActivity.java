@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -16,10 +15,10 @@ import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.squareup.picasso.Picasso;
-
+import com.github.chrisbanes.photoview.PhotoView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,35 +32,25 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imageView = findViewById(R.id.current_image);
+        bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        if (bitmap != null)
+            imageView.setImageBitmap(bitmap);
     }
 
     public void confirmConfiguration(View v)
     {
-        String myUrlStr = "https://image.shutterstock.com/image-photo/colorful-flower-on-dark-tropical-260nw-721703848.jpg";
-
-        Picasso.get().load(myUrlStr).placeholder(R.drawable.loading).into(imageView);
-        final Context context = this;
-        Handler delayHandler = new Handler();
-        delayHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("print", "image from url set");
-                bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-                RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
-                ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
-//            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
-//        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image2);
-//        remoteViews.setImageViewUri(R.id.scrImage, uri);
-                remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
-
-
-                appWidgetManager.updateAppWidget(thisWidget, remoteViews);
-            }
-        }, 3000);
-
+        openGallery();
     }
 
+    public void onclick_zoom(View view){
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.dialog_custom_layout, null);
+        PhotoView photoView = mView.findViewById(R.id.imageView);
+        photoView.setImageBitmap(bitmap);
+        mBuilder.setView(mView);
+        AlertDialog mDialog = mBuilder.create();
+        mDialog.show();
+    }
     private void openGallery() {
         Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         startActivityForResult(gallery, PICK_IMAGE);
@@ -72,27 +61,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK &&  requestCode == PICK_IMAGE) {
-            if (data.getData() != null) {
-                Log.d("print", "Activity result");
-                imageUri = data.getData();
-//                String myUrlStr = "https://image.shutterstock.com/image-photo/colorful-flower-on-dark-tropical-260nw-721703848.jpg";
+            imageUri = data.getData();
+            imageView.setImageURI(imageUri);
+            bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
 
-//                Picasso.get().load(myUrlStr).into(imageView);
+            Log.d(" act main", "image selected is updated");
 
-//                Picasso.get().load(myUrlStr).''
-//
-//                Context context = this;
-//                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-//                RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
-//                ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
-////            remoteViews.setImageViewUri(R.id.scrImage, imageUri);
-//                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image2);
-//            remoteViews.setImageViewUri(R.id.scrImage, uri);
-////                remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
-//
-//
-//                appWidgetManager.updateAppWidget(thisWidget, remoteViews);
-            }
+            Context context = this;
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.example_widget);
+            ComponentName thisWidget = new ComponentName(context, ExampleAppWidgetProvider.class);
+            remoteViews.setImageViewBitmap(R.id.scrImage, bitmap);
+
+            appWidgetManager.updateAppWidget(thisWidget, remoteViews);
 
         }
     }
