@@ -2,7 +2,6 @@ package com.example.schedule;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -21,9 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.ByteArrayOutputStream;
 
 public class ImageAppWidgetConfig extends AppCompatActivity {
-
-    public static final String SHARED_PREFS = "prefs";
-    public static final String KEY_BUTTON_TEXT = "keyButtonText";
 
     private int appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     private ImageView imageView;
@@ -86,15 +82,15 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
 //            Context context = this;
 
             RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.image_widget);
-            ComponentName thisWidget = new ComponentName(this, ImageAppWidgetProvider.class);
+//            ComponentName thisWidget = new ComponentName(this, ImageAppWidgetProvider.class);
             remoteViews.setImageViewBitmap(R.id.view_image_widget, bitmap);
 
-            appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+            appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
 
             String str_image = BitMapToString(bitmap);
             SharedPreferences prefs = getSharedPreferences("str_image", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("imagestrings", str_image);
+            editor.putString(String.valueOf(appWidgetId), str_image);
             editor.apply();
 
             Intent resultValue = new Intent();
