@@ -1,6 +1,5 @@
 package com.example.schedule;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
@@ -75,46 +74,75 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Context context = this;
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         if(resultCode == RESULT_OK &&  requestCode == PICK_IMAGE) {
             imageUri = data.getData();
             try {
-                imageView.setImageURI(imageUri);
-                setWidgetImage();
+                SharedPreferences prefs = getSharedPreferences("URI", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(String.valueOf(appWidgetId), imageUri.toString());
+                editor.apply();
+                Update(appWidgetId);
             }
             catch (Exception e){
                 imageView.setImageResource(R.drawable.error);
             }
-
         }
 
         else if(resultCode == RESULT_OK && requestCode == PICK_WEB_IMGAE){
             String url = data.getStringExtra("getURL");
             Log.d("sangmin", url);
 
-            Picasso.get()
-                    .load(url)
-                    .placeholder(R.drawable.loading)
-                    .into(imageView, new com.squareup.picasso.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            setWidgetImage();
-                        }
-                        @Override
-                        public void onError(Exception ex) {
-                            imageView.setImageResource(R.drawable.error);
-                        }
-                    });
+            SharedPreferences prefs = getSharedPreferences("URL", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(String.valueOf(appWidgetId), url);
+            editor.apply();
+            Update(appWidgetId);
         }
         else {
             imageView.setImageResource(R.drawable.error);
         }
+    }
+    public void Update(int appWidgetId)
+    {
+        try {
+            try {
+                UpdateImage(appWidgetId);
+            }
 
+            catch (Exception e){
+                Update_Web_Image(appWidgetId);
+            }
+        }
+       catch (Exception e){
+
+        }
+    }
+    private void UpdateImage(int appWidgetId){
+        SharedPreferences prefs = this.getSharedPreferences("URI", Context.MODE_PRIVATE);
+        String str_uri = prefs.getString(String.valueOf(appWidgetId), "");
+
+        Uri uri = Uri.parse(str_uri);
+        imageView.setImageURI(uri);
+        setWidgetImage();
+
+    }
+    private void Update_Web_Image(int appWidgetId) {
+        SharedPreferences prefs = this.getSharedPreferences("URL", Context.MODE_PRIVATE);
+        String url = prefs.getString(String.valueOf(appWidgetId), "");
+        Picasso.get()
+                .load(url)
+                .placeholder(R.drawable.loading)
+                .into(imageView, new com.squareup.picasso.Callback() {
+                    @Override
+                    public void onSuccess() {
+                        setWidgetImage();
+                    }
+                    @Override
+                    public void onError(Exception ex) {
+                        imageView.setImageResource(R.drawable.error);
+                    }
+                });
     }
     private void setWidgetImage(){
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
@@ -123,6 +151,8 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
 
         RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.image_widget);
         remoteViews.setImageViewBitmap(R.id.view_image_widget, bitmap);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+//        remoteViews.setOnClickPendingIntent(R.id.view_image_widget, pendingIntent);
 
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
 

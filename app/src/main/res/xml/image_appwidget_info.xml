@@ -4,9 +4,10 @@
     android:minHeight="1dp"
     android:minWidth="1dp"
     android:resizeMode="vertical|horizontal"
-    android:updatePeriodMillis="1800000"
+    android:updatePeriodMillis= "21600000"
     android:widgetCategory="home_screen"
     android:configure="com.example.schedule.ImageAppWidgetConfig"
+    android:previewImage="@drawable/upload_image"
     >
 
 </appwidget-provider>
