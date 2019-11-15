@@ -32,6 +32,7 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
     public static Bitmap bitmap;
     private static final int PICK_IMAGE = 100;
     private static final int PICK_WEB_IMGAE = 101;
+    private int pixel_limit = 2350 * 2350;
 
 
     @Override
@@ -91,7 +92,7 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
 
         else if(resultCode == RESULT_OK && requestCode == PICK_WEB_IMGAE){
             String url = data.getStringExtra("getURL");
-            Log.d("sangmin", url);
+//            Log.d("sangmin", url);
 
             SharedPreferences prefs = getSharedPreferences("URL", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
@@ -145,18 +146,38 @@ public class ImageAppWidgetConfig extends AppCompatActivity {
                 });
     }
     private void setWidgetImage(){
+        Log.d("sangmin", "Update Widget Image");
+
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        Log.d("sangmin", "in");
         bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+        double heigth = bitmap.getHeight();
+        double width = bitmap.getWidth();
+        double ratio = 0.8;
+//        Log.d("sangmin", String.valueOf(heigth));
+//        Log.d("sangmin", String.valueOf(width));
+
+        while ((heigth * width) >= pixel_limit){
+            heigth =  heigth * ratio;
+            width = width  * ratio;
+        }
+//        Log.d("sangmin", String.valueOf(heigth));
+//        Log.d("sangmin", String.valueOf(width));
+        Bitmap resized = Bitmap.createScaledBitmap(bitmap, (int)width, (int)heigth, true);
 
         RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.image_widget);
-        remoteViews.setImageViewBitmap(R.id.view_image_widget, bitmap);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        Log.d("sangmin", "1");
+
+        remoteViews.setImageViewBitmap(R.id.view_image_widget, resized);
+        Log.d("sangmin", "2");
+
+        //        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 //        remoteViews.setOnClickPendingIntent(R.id.view_image_widget, pendingIntent);
 
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+        Log.d("sangmin", "3");
 
-        String str_image = BitMapToString(bitmap);
+
+        String str_image = BitMapToString(resized);
         SharedPreferences prefs = getSharedPreferences("str_image", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(String.valueOf(appWidgetId), str_image);
